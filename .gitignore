@@ -160,10 +160,11 @@ cython_debug/
 notebooks/
 
 # models
-outputs/
+./code/outputs/
 
 #
-*.json
+./input/train/*.json
+./input/test/*.json
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
