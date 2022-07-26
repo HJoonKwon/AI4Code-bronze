@@ -163,8 +163,10 @@ notebooks/
 ./code/outputs/
 
 #
-./input/train/*.json
-./input/test/*.json
+input
+outputs
+wandb
+data
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
