@@ -5,6 +5,8 @@ import pandas as pd
 from scipy import sparse
 from tqdm import tqdm
 import os
+import re
+import nltk
 
 data_dir = Path('..//input/')
 if not os.path.exists("./data"):
@@ -70,6 +72,17 @@ train_ind, val_ind = next(splitter.split(df, groups=df["ancestor_id"]))
 train_df = df.loc[train_ind].reset_index(drop=True)
 val_df = df.loc[val_ind].reset_index(drop=True)
 
+train_markdowns = train_df[train_df['cell_type'] == 'markdown']
+train_markdowns['source_clean'] = train_markdowns['source'].apply(str).apply(lambda x: text_preprocessing(x))
+rows = train_df['cell_type'] == 'markdown'
+train_df.loc[rows, 'source'] = train_markdowns['source_clean']
+
+val_markdowns = val_df[val_df['cell_type'] == 'markdown']
+val_markdowns['source_clean'] = val_markdowns['source'].apply(str).apply(lambda x: text_preprocessing(x))
+rows = val_df['cell_type'] == 'markdown'
+val_df.loc[rows, 'source'] = val_markdowns['source_clean']
+
+
 # Base markdown dataframes
 train_df_mark = train_df[train_df["cell_type"] == "markdown"].reset_index(drop=True)
 val_df_mark = val_df[val_df["cell_type"] == "markdown"].reset_index(drop=True)
@@ -82,6 +95,30 @@ train_df.to_csv("./data/train.csv", index=False)
 # Additional code cells
 def clean_code(cell):
     return str(cell).replace("\\n", "\n")
+
+def clean_text(text):
+    '''Make text lowercase, remove text in square brackets,remove links,remove punctuation
+    and remove words containing numbers.'''
+    text = text.lower()
+    text = text.strip()
+    text = re.sub('\[.*?\]', '', text)
+    text = re.sub('https?://\S+|www\.\S+', '', text)
+    text = re.sub('<.*?>+', '', text)
+#     text = re.sub('[%s]' % re.escape(string.punctuation), '', text)
+    text = re.sub('\n', '', text)
+#     text = re.sub('\w*\d\w*', '', text)
+    return text
+
+def text_preprocessing(text):
+    """
+    Cleaning and parsing the text.
+
+    """
+    tokenizer = nltk.tokenize.RegexpTokenizer(r'\w+')
+    nopunc = clean_text(text)
+    tokenized_text = tokenizer.tokenize(nopunc)
+    combined_text = ' '.join(tokenized_text)
+    return combined_text
 
 
 def sample_cells(cells, n):
