@@ -14,30 +14,6 @@ import wandb
 import config
 import transformers
 
-parser = argparse.ArgumentParser(description='Process some arguments')
-parser.add_argument('--model_name_or_path',
-                    type=str,
-                    default='microsoft/codebert-base')
-parser.add_argument('--train_mark_path',
-                    type=str,
-                    default='./data/train_mark.csv')
-parser.add_argument('--train_features_path',
-                    type=str,
-                    default='./data/train_fts.json')
-parser.add_argument('--val_mark_path', type=str, default='./data/val_mark.csv')
-parser.add_argument('--val_features_path',
-                    type=str,
-                    default='./data/val_fts.json')
-parser.add_argument('--val_path', type=str, default="./data/val.csv")
-
-# parser.add_argument('--md_max_len', type=int, default=120)
-# parser.add_argument('--total_max_len', type=int, default=512)
-# parser.add_argument('--batch_size', type=int, default=16)
-parser.add_argument('--accumulation_steps', type=int, default=1)
-# parser.add_argument('--epochs', type=int, default=5)
-# parser.add_argument('--n_workers', type=int, default=8)
-
-args = parser.parse_args()
 conf = config.Config()
 
 WANDB_CONFIG = {
@@ -65,13 +41,13 @@ data_dir = conf.data_dir
 wb_key = conf.wb_key
 wandb.login(key=wb_key)
 
-train_df_mark = pd.read_csv(args.train_mark_path).drop(
+train_df_mark = pd.read_csv(conf.train_mark_path).drop(
     "parent_id", axis=1).dropna().reset_index(drop=True)
-train_fts = json.load(open(args.train_features_path))
-val_df_mark = pd.read_csv(args.val_mark_path).drop(
+train_fts = json.load(open(conf.train_features_path))
+val_df_mark = pd.read_csv(conf.val_mark_path).drop(
     "parent_id", axis=1).dropna().reset_index(drop=True)
-val_fts = json.load(open(args.val_features_path))
-val_df = pd.read_csv(args.val_path)
+val_fts = json.load(open(conf.val_features_path))
+val_df = pd.read_csv(conf.val_path)
 
 order_df = pd.read_csv("../input/train_orders.csv").set_index("id")
 df_orders = pd.read_csv(
@@ -180,7 +156,7 @@ def train(model, train_loader, val_loader, epochs):
     # num_train_optimization_steps = int(args.epochs * len(train_loader) /
     #                                    args.accumulation_steps)
     num_train_optimization_steps = int(conf.NB_EPOCHS * len(train_loader) /
-                                       args.accumulation_steps)
+                                       conf.accumulation_steps)
     optimizer = yield_optimizer(model)
     # scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
     #     optimizer, T_0=conf.T_0, eta_min=conf.η_min)
@@ -213,7 +189,7 @@ def train(model, train_loader, val_loader, epochs):
                 pred = model(*inputs)
                 loss = criterion(pred, target)
             scaler.scale(loss).backward()
-            if idx % args.accumulation_steps == 0 or idx == len(tbar) - 1:
+            if idx % conf.accumulation_steps == 0 or idx == len(tbar) - 1:
                 scaler.step(optimizer)
                 scaler.update()
                 optimizer.zero_grad()
@@ -240,6 +216,8 @@ def train(model, train_loader, val_loader, epochs):
         score = kendall_tau(df_orders.loc[y_dummy.index], y_dummy)
         wandb_log(predidction_score=score, val_loss=val_loss)
         print("Preds score", score)
+        if not os.path.isdir(conf.output_dir):
+            os.mkdir(conf.output_dir)
         torch.save(model.state_dict(),
                    os.path.join(conf.output_dir, f'model_epoch{e+1}.bin'))
 

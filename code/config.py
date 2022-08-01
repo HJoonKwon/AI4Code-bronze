@@ -21,14 +21,21 @@ class Config:
     LR = 3e-5
     T_0 = 20
     η_min = 1e-4
-    MD_MAX_LEN = 120
+    MD_MAX_LEN = 64
     TOTAL_MAX_LEN = 512
     TRAIN_BS = 32
     VALID_BS = 32
-    MODEL_NAME = 'microsoft/codebert-base'
+    # MODEL_NAME = 'microsoft/codebert-base'
+    MODEL_NAME = 'microsoft/graphcodebert-base'
     data_dir = Path('../input/')
     output_dir = Path(f'./outputs/{MODEL_NAME}')
     # TOKENIZER = transformers.BertTokenizer.from_pretrained(MODEL_NAME, do_lower_case=True)
     scaler = GradScaler()
     wb_key = '254c36ecc9968daa5343f5047af6160cc9d791da'
     n_workers = 8
+    train_mark_path = './data/train_mark.csv'
+    train_features_path = './data/train_fts.json'
+    val_mark_path = './data/val_mark.csv'
+    val_features_path = './data/val_fts.json'
+    val_path = "./data/val.csv"
+    accumulation_steps = 1
