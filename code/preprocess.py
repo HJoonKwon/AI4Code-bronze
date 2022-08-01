@@ -22,6 +22,31 @@ def read_notebook(path):
     )
 
 
+def clean_text(text):
+    '''Make text lowercase, remove text in square brackets,remove links,remove punctuation
+    and remove words containing numbers.'''
+    text = text.lower()
+    text = text.strip()
+    text = re.sub('\[.*?\]', '', text)
+    text = re.sub('https?://\S+|www\.\S+', '', text)
+    text = re.sub('<.*?>+', '', text)
+#     text = re.sub('[%s]' % re.escape(string.punctuation), '', text)
+    text = re.sub('\n', '', text)
+#     text = re.sub('\w*\d\w*', '', text)
+    return text
+
+def text_preprocessing(text):
+    """
+    Cleaning and parsing the text.
+
+    """
+    tokenizer = nltk.tokenize.RegexpTokenizer(r'\w+')
+    nopunc = clean_text(text)
+    tokenized_text = tokenizer.tokenize(nopunc)
+    combined_text = ' '.join(tokenized_text)
+    return combined_text
+
+
 paths_train = list((data_dir / 'train').glob('*.json'))
 notebooks_train = [
     read_notebook(path) for path in tqdm(paths_train, desc='Train NBs')
@@ -95,31 +120,6 @@ train_df.to_csv("./data/train.csv", index=False)
 # Additional code cells
 def clean_code(cell):
     return str(cell).replace("\\n", "\n")
-
-def clean_text(text):
-    '''Make text lowercase, remove text in square brackets,remove links,remove punctuation
-    and remove words containing numbers.'''
-    text = text.lower()
-    text = text.strip()
-    text = re.sub('\[.*?\]', '', text)
-    text = re.sub('https?://\S+|www\.\S+', '', text)
-    text = re.sub('<.*?>+', '', text)
-#     text = re.sub('[%s]' % re.escape(string.punctuation), '', text)
-    text = re.sub('\n', '', text)
-#     text = re.sub('\w*\d\w*', '', text)
-    return text
-
-def text_preprocessing(text):
-    """
-    Cleaning and parsing the text.
-
-    """
-    tokenizer = nltk.tokenize.RegexpTokenizer(r'\w+')
-    nopunc = clean_text(text)
-    tokenized_text = tokenizer.tokenize(nopunc)
-    combined_text = ' '.join(tokenized_text)
-    return combined_text
-
 
 def sample_cells(cells, n):
     cells = [clean_code(cell) for cell in cells]
