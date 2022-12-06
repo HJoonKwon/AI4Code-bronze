@@ -1,3 +1,5 @@
+# Based on [suicao's baseline](https://github.com/suicao/ai4code-baseline), I just revised a few things to test other models. 
+
 ## Early solution for [ Google AI4Code](https://www.kaggle.com/competitions/AI4Code) competition
 
 ### Overview
